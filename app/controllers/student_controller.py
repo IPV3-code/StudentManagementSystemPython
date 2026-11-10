@@ -8,12 +8,14 @@ from app.schemas.student import (
     StudentPatchRequest,
     StudentResponse
 )
+from app.notifications.notiication_service import EmailNotificationService
 
 router = APIRouter(prefix="/students", tags=["students"])
 
 
 def get_student_service(db: Session = Depends(get_db)):
-    return StudentService(db)
+    notification_service = EmailNotificationService()
+    return StudentService(db, notification_service)
 
 
 @router.get("/", response_model=list[StudentResponse])

@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
 
+from app.notifications.notiication_service import NotificationService
 from app.repositories.student_repository import StudentRepository
 from app.schemas.student import (
     StudentRequest,
@@ -10,8 +11,9 @@ from app.schemas.student import (
 
 
 class StudentService:
-    def __init__(self, db: Session):
+    def __init__(self, db: Session, notification_service: NotificationService):
         self.repository = StudentRepository(db)
+        self.notification_service = notification_service
 
     def get_all_students(self):
         students = self.repository.get_all()
@@ -31,6 +33,9 @@ class StudentService:
 
     def create_student(self, student_data: StudentRequest):
         student = self.repository.create(student_data)
+        self.notification_service.send_notification(
+            f"New student created: {student.name}"
+        )
         return StudentResponse.model_validate(student)
 
     def update_student(self, student_id: int, student_data: StudentRequest):
