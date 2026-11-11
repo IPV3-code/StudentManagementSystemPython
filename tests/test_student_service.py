@@ -3,6 +3,7 @@ from unittest.mock import MagicMock
 import pytest
 from fastapi import HTTPException
 
+from app.notifications.notiication_service import NotificationService, EmailNotificationService
 from app.services.student_service import StudentService
 from app.schemas.student import (
     StudentRequest,
@@ -17,8 +18,13 @@ def mock_db():
 
 
 @pytest.fixture
-def service(mock_db):
-    return StudentService(mock_db)
+def notification():
+    return EmailNotificationService()
+
+
+@pytest.fixture
+def service(mock_db, notification):
+    return StudentService(mock_db, notification)
 
 
 @pytest.fixture
