@@ -1,22 +1,30 @@
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, declarative_base
 
-DATABASE_URL = (
-    "mysql+pymysql://root:root@localhost:3306/"
-    "student_management_python"
-)
+import os
 
-engine = create_engine(DATABASE_URL, echo=True)
+import httpx
+from dotenv import load_dotenv
 
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+load_dotenv()
 
-Base = declarative_base()
+MARKLOGIC_BASE_URL = os.getenv("MARKLOGIC_BASE_URL")
+MARKLOGIC_USERNAME = os.getenv("MARKLOGIC_USERNAME")
+MARKLOGIC_PASSWORD = os.getenv("MARKLOGIC_PASSWORD")
 
 
-def get_db():
-    db = SessionLocal()
+def get_marklogic_client():
+    if not all([
+        MARKLOGIC_BASE_URL,
+        MARKLOGIC_USERNAME,
+        MARKLOGIC_PASSWORD
+    ]):
+        raise RuntimeError("MarkLogic configuration is missing")
 
-    try:
-        yield db
-    finally:
-        db.close()
+    with httpx.Client(
+        base_url=MARKLOGIC_BASE_URL,
+        auth=httpx.DigestAuth(
+            MARKLOGIC_USERNAME,
+            MARKLOGIC_PASSWORD
+        ),
+        timeout=10.0
+    ) as client:
+        yield client
